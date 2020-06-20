@@ -5,12 +5,14 @@ config.log
 menudep
 menudep.h
 xcircexec
+xcircdnull
 lib/tcl/xcircuit.sh
 lib/tcl/xcircuit.tcl
 lib/tcl/xcircuit.bat
 lib/xcircuit.1
 xcircuit.spec
 *~
+*.swp
 *.o
 *.so
 Makefile
@@ -23,3 +25,17 @@ asg/Makefile
 spiceparser/*.o
 spiceparser/*.so
 spiceparser/Makefile
+#
+# autoconf generated files
+#
+Makefile.in
+Xw/Makefile.in
+aclocal.m4
+asg/Makefile.in
+autom4te.cache/
+compile
+config.guess
+config.sub
+configure
+install-sh
+missing

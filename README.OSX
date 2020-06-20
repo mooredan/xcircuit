@@ -1,0 +1,66 @@
+# How to compile on OSX with MacPorts
+
+# The following has been tested on a MacBook Pro (13-inch 2017) running
+# macOS Mojave Version 10.14.1
+
+# Install MacPorts:
+# If not all ready installed. Presumably, a comparable method will work 
+# with Homebrew. If you find a successful recipe, then please contribute 
+# by updating this file.
+# re: https://www.macports.org/
+
+# In the instructions below, bash is assumed for setting environment 
+# variables. Adjust the method the setting of environment variables as 
+# necessary for your shell. e.g. setenv prefix /opt/local instead of export ...
+
+# Dependencies: 
+sudo port install cairo autoconf automake ghostscript libtool pkgconfig tk xpm 
+
+# Clone the repository:
+# -----------------------------------------------------------
+git clone git://opencircuitdesign.com/xcircuit
+
+# ...or...
+# % git clone https://github.com/mooredan/xcircuit.git
+
+cd xcircuit
+git checkout xcircuit-3.10
+
+# Force regeneration of configure file, et. al.
+# -----------------------------------------------------------
+autoreconf -fvi
+
+# Set prefix to MacPorts default prefix, typically /opt/local
+# -----------------------------------------------------------
+export prefix=/opt/local
+
+# Append to the compilation flags so to demote the no-return-type
+# error to a warning
+# -----------------------------------------------------------
+export CFLAGS="${CFLAGS} -Wno-return-type"
+
+# Configure
+# -----------------------------------------------------------
+./configure  --prefix=${prefix} \
+             --with-tcl=${prefix}/lib \
+             --with-tk=${prefix}/lib \
+             --with-gs=${prefix}/bin/gs \
+             --x-includes=${prefix}/include \
+             --x-libraries=${prefix}/lib
+
+# Compile
+# -----------------------------------------------------------
+make
+
+# Install
+# -----------------------------------------------------------
+sudo make install
+
+# For the brave, this file can be sourced in a bash shell and
+# all should go well. YMMV
+
+# Thanks to the MacPorts xcircuit contributors.
+# re: https://github.com/macports/macports-ports/blob/master/x11/xcircuit-devel/Portfile
+
+# Dan Moore
+# mooredan@suncup.net

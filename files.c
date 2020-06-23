@@ -3993,6 +3993,7 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 	 }
 
 	 else if (!strcmp(keyword, "arc") || !strcmp(keyword, "arcn")) {
+	    XPoint temppoint;
 	    arcptr *newarc;
 	    NEW_ARC(newarc, (*newpath));
 	    (*newarc)->width = 1.0;
@@ -4021,12 +4022,15 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 	    }
 		
 	    calcarc(*newarc);
+	    temppoint.x = startpoint.x;
+	    temppoint.y = startpoint.y;
 	    startpoint.x = (short)(*newarc)->points[(*newarc)->number - 1].x;
 	    startpoint.y = (short)(*newarc)->points[(*newarc)->number - 1].y;
-	    decomposearc(*newpath);
+	    decomposearc(*newpath, &temppoint);
 	 }
 
 	 else if (!strcmp(keyword, "pellip") || !strcmp(keyword, "nellip")) {
+	    XPoint temppoint;
 	    arcptr *newarc;
 	    NEW_ARC(newarc, (*newpath));
 	    (*newarc)->width = 1.0;
@@ -4056,9 +4060,11 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 		
 	    }
 	    calcarc(*newarc);
+	    temppoint.x = startpoint.x;
+	    temppoint.y = startpoint.y;
 	    startpoint.x = (short)(*newarc)->points[(*newarc)->number - 1].x;
 	    startpoint.y = (short)(*newarc)->points[(*newarc)->number - 1].y;
-	    decomposearc(*newpath);
+	    decomposearc(*newpath, &temppoint);
 	 }
 
 	 else if (!strcmp(keyword, "curveto")) {
@@ -4880,6 +4886,12 @@ Boolean objectread(FILE *ps, objectptr localdata, short offx, short offy,
 				(genericptr)*newinst, 0, offx, P_POSITION_X);
 	             lineptr = varpscan(localdata, lineptr, &(*newinst)->position.y,
 				(genericptr)*newinst, 0, offy, P_POSITION_Y);
+
+		     /* Look for the "not netlistable" flag */
+		     if (*lineptr == '/') {
+			if (!strncmp(lineptr, "/nn", 3))
+			   (*newinst)->style |= INST_NONETLIST;
+		     }
 
 		     /* Negative rotations = flip in x in version 2.3.6 and    */
 		     /* earlier.  Later versions don't allow negative rotation */
@@ -6790,6 +6802,7 @@ void printOneObject(FILE *ps, objectptr localdata, int ccolor)
 	    if (!(sobj->style & LINE_INVARIANT)) fprintf(ps, "/sv ");
 	    varfcheck(ps, sobj->rotation, localdata, &stcount, *savegen, P_ROTATION);
 	    xyvarcheck(sobj->position, 0, savegen);
+	    if (sobj->style & INST_NONETLIST) fprintf(ps, "/nn ");
 
 	    opsubstitute(sobj->thisobject, sobj);
 	    stcount = printparams(ps, sobj, stcount);

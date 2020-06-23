@@ -1135,6 +1135,9 @@ void gencalls(objectptr thisobject)
          if (IS_OBJINST(*cgen)) {
 	    callinst = TOOBJINST(cgen);
 
+	    /* Ignore any instance that is specifically marked non-netlistable */
+	    if (callinst->style & INST_NONETLIST) continue;
+
 	    /* Determine where the hierarchy continues downward */
 
 	    if (callinst->thisobject->symschem != NULL)
@@ -1142,7 +1145,7 @@ void gencalls(objectptr thisobject)
 	    else
 	       callobj = callinst->thisobject;
 
-	    /* Ignore any object on its own schematic */
+	    /* Always ignore any object on its own schematic */
 
 	    if (callobj == pschem) continue;
 
@@ -1152,11 +1155,11 @@ void gencalls(objectptr thisobject)
 	    /* callsymb is the next visible object in the hierarchy, 	*/
 	    /* which may be either a schematic or a symbol.		*/
 
-	    /*-------------------------------------------------------------*/
-	    /* For object instances which are their own schematics (i.e.,  */
-	    /* have netlist elements), don't rely on any pin list but make */
-	    /* a survey of how polygons connect into the object.	   */
-	    /*-------------------------------------------------------------*/
+	    /*--------------------------------------------------------------*/
+	    /* For object instances which are their own schematics (i.e.,   */
+	    /* have netlist elements), don't rely on any pin list but make  */
+	    /* a survey of how polygons connect into the object.	    */
+	    /*--------------------------------------------------------------*/
 
 	    if (callsymb->symschem == NULL
 			&& callobj->schemtype != FUNDAMENTAL
@@ -5886,10 +5889,12 @@ Boolean writepcb(struct Ptab **ptableptr, objectptr cschem, CalllistPtr cfrom,
          }
 
          /* Step 4C: Run routine recursively on the subcircuit */
+	 /* If it had a "pcb:" info label that was handled, then ignore */
 
 	 /* Fprintf(stdout, "Recursive call of writepcb() to %s\n",
 		calls->callobj->name); */
-         outputcall = writepcb(ptableptr, calls->callobj, calls, newprefix, mode);
+
+	 outputcall = writepcb(ptableptr, calls->callobj, calls, newprefix, mode);
 
          /* Step 4D: Pop the translation table */
 	 /* (Don't pop global nets (designated by negative net number)) */
@@ -5923,11 +5928,16 @@ Boolean writepcb(struct Ptab **ptableptr, objectptr cschem, CalllistPtr cfrom,
 	    ppin = nettopin(locnet, calls->callobj, NULL);
 	    hidx = *ptableptr;
 	    while (hidx != NULL) {
-	       if (hidx->nets != NULL) {
-		  for (i = 0; i < hidx->nets->numnets; i++)
-	             if (*(hidx->nets->netidx + i) == ports->netid)
-		        break;
-		  if (i < hidx->nets->numnets) break;
+	       if ((hidx->nets != NULL) && (hidx->nets->numnets > 0)) {
+		  /* Global nets were not translated, do not iterate through list */
+		  if (*(hidx->nets->netidx) >= 0) {
+		     for (i = 0; i < hidx->nets->numnets; i++)
+	                if (*(hidx->nets->netidx + i) == ports->netid)
+		           break;
+		     if (i < hidx->nets->numnets) break;
+		  } else {
+	             if (*(hidx->nets->netidx) == ports->netid) break;
+		  }
 	       }
 	       hidx = hidx->next;
 	    }
@@ -5955,7 +5965,7 @@ Boolean writepcb(struct Ptab **ptableptr, objectptr cschem, CalllistPtr cfrom,
 	       tmpstr->next = hidx->pins;
 	       hidx->pins = tmpstr;
 
-	       /* diagnositic information */
+	       /* diagnostic information */
 	       {
 		  struct Pnet *locnet = hidx->nets;
 		  int ctr = 0;
@@ -5965,7 +5975,7 @@ Boolean writepcb(struct Ptab **ptableptr, objectptr cschem, CalllistPtr cfrom,
 		  }
 	          /* Fprintf(stdout, "Logged level-%d net %d (local net %d) pin %s\n",
 			ctr, *(locnet->netidx), *(hidx->nets->netidx + i),
-			tmpstr->string);			*/
+			tmpstr->string); */
 	       }
             }
          }

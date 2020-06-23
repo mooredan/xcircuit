@@ -476,7 +476,8 @@ enum loadmodes {IMPORT = 1, PSBKGROUND, SCRIPT, RECOVER,
 /* Object instance styles						*/
 /*----------------------------------------------------------------------*/
 
-#define LINE_INVARIANT 1	/* Linewidth is invariant w.r.t. scale */
+#define LINE_INVARIANT 1	/* Linewidth is invariant w.r.t. scale	*/
+#define INST_NONETLIST 2	/* Instance is not netlistable		*/
 
 /*----------------------------------------------------------------------*/
 /* Box styles								*/
@@ -1532,6 +1533,7 @@ typedef struct _Technology {
 #define TECH_REPLACE		0x08	/* Replace instances when reading */
 #define TECH_REPLACE_TEMP	0x10	/* Temporary store */
 #define TECH_USED		0x20	/* Temporary marker flag */
+#define TECH_PREFER		0x40	/* Prefer technology on name conflict */
 
 /*----------------------------------------------------------------------*/
 /* A convenient structure for holding all the object lists		*/

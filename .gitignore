@@ -2,9 +2,11 @@ xcircuit
 config.cache
 config.status
 config.log
+autom4te.cache
 menudep
 menudep.h
 xcircexec
+xcircdnull
 lib/tcl/xcircuit.sh
 lib/tcl/xcircuit.tcl
 lib/tcl/xcircuit.bat
